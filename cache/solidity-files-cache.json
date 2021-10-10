@@ -1016,8 +1016,8 @@
       ]
     },
     "C:\\Users\\Spencer\\source\\repos\\wallet-to-wallet-communication-nft\\contracts\\MessageNFT.sol": {
-      "lastModificationDate": 1633905053713,
-      "contentHash": "25aaf79402b2dc6f0b33b51e7eda9ae0",
+      "lastModificationDate": 1633909424057,
+      "contentHash": "68b025976a94603483b63047783820d9",
       "sourceName": "contracts/MessageNFT.sol",
       "solcConfig": {
         "version": "0.8.4",

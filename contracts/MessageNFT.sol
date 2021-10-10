@@ -249,8 +249,6 @@ abstract contract Context {
     }
 }
 
-
-
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * there is an account (an owner) that can be granted exclusive access to
@@ -318,9 +316,6 @@ abstract contract Ownable is Context {
 }
 
 
-
-
-
 /**
  * @dev Contract module that helps prevent reentrant calls to a function.
  *
@@ -379,19 +374,6 @@ abstract contract ReentrancyGuard {
         _status = _NOT_ENTERED;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * @title ERC721 token receiver interface
@@ -831,9 +813,9 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         uint256 tokenId
     ) public virtual override {
         //solhint-disable-next-line max-line-length
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
+        // require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
 
-        _transfer(from, to, tokenId);
+        // _transfer(from, to, tokenId);
     }
 
     /**
@@ -844,7 +826,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         address to,
         uint256 tokenId
     ) public virtual override {
-        safeTransferFrom(from, to, tokenId, "");
+        // safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
@@ -856,36 +838,8 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         uint256 tokenId,
         bytes memory _data
     ) public virtual override {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
-        _safeTransfer(from, to, tokenId, _data);
-    }
-
-    /**
-     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
-     * are aware of the ERC721 protocol to prevent tokens from being forever locked.
-     *
-     * `_data` is additional data, it has no specified format and it is sent in call to `to`.
-     *
-     * This internal function is equivalent to {safeTransferFrom}, and can be used to e.g.
-     * implement alternative mechanisms to perform token transfer, such as signature-based.
-     *
-     * Requirements:
-     *
-     * - `from` cannot be the zero address.
-     * - `to` cannot be the zero address.
-     * - `tokenId` token must exist and be owned by `from`.
-     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
-     *
-     * Emits a {Transfer} event.
-     */
-    function _safeTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory _data
-    ) internal virtual {
-        _transfer(from, to, tokenId);
-        require(_checkOnERC721Received(from, to, tokenId, _data), "ERC721: transfer to non ERC721Receiver implementer");
+        // require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
+        // _safeTransfer(from, to, tokenId, _data);
     }
 
     /**
@@ -1007,19 +961,19 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         address to,
         uint256 tokenId
     ) internal virtual {
-        require(ERC721.ownerOf(tokenId) == from, "ERC721: transfer of token that is not own");
-        require(to != address(0), "ERC721: transfer to the zero address");
+        // require(ERC721.ownerOf(tokenId) == from, "ERC721: transfer of token that is not own");
+        // require(to != address(0), "ERC721: transfer to the zero address");
 
-        _beforeTokenTransfer(from, to, tokenId);
+        // _beforeTokenTransfer(from, to, tokenId);
 
-        // Clear approvals from the previous owner
-        _approve(address(0), tokenId);
+        // // Clear approvals from the previous owner
+        // _approve(address(0), tokenId);
 
-        _balances[from] -= 1;
-        _balances[to] += 1;
-        _owners[tokenId] = to;
+        // _balances[from] -= 1;
+        // _balances[to] += 1;
+        // _owners[tokenId] = to;
 
-        emit Transfer(from, to, tokenId);
+        // emit Transfer(from, to, tokenId);
     }
 
     /**
@@ -1344,13 +1298,15 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
     // this is used pretty exclusively for tokenuri.  i think its conceptually better to send messages to addresses than to tokenIDs
     mapping(uint => address) public tokensToAddress;
 
+    mapping(address => uint256) public ethValues;
+
     constructor() ERC721("MessageMe", "MSG") {}
 
     // edit functions
     function writeFree(address userAddress, string calldata message) external {
         require(!allLedgers[userAddress].isPayable, "token write not free");
-        allLedgers[userAddress].messages[msg.sender] = message;
-        allLedgers[userAddress].lastMessages[allLedgers[userAddress].writeIndex] = msg.sender;
+        allLedgers[userAddress].messages[_msgSender()] = message;
+        allLedgers[userAddress].lastMessages[allLedgers[userAddress].writeIndex] = _msgSender();
         allLedgers[userAddress].writeIndex++;
         // if greater than our array, set back to zero
         if (allLedgers[userAddress].writeIndex > 9) {
@@ -1360,35 +1316,48 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
 
     function writePayable(address userAddress, string calldata message) external payable {
         require(msg.value >= allLedgers[userAddress].writePrice, "not enough, chump");
-        allLedgers[userAddress].messages[msg.sender] = message;
-        allLedgers[userAddress].lastMessages[allLedgers[userAddress].writeIndex] = msg.sender;
+        allLedgers[userAddress].messages[_msgSender()] = message;
+        allLedgers[userAddress].lastMessages[allLedgers[userAddress].writeIndex] = _msgSender();
         allLedgers[userAddress].writeIndex++;
         // if greater than our array, set back to zero
         if (allLedgers[userAddress].writeIndex > 9) {
             allLedgers[userAddress].writeIndex = 0;
         }
+
+        ethValues[userAddress] += msg.value;
+    }
+
+    function withdraw(address payable wallet) external {
+        require(_msgSender() == wallet, "not yours");
+        require(ethValues[_msgSender()] > 0, "need eth to withdraw");
+
+        wallet.transfer(ethValues[_msgSender()]);
+        ethValues[_msgSender()] = 0;
     }
 
     // owner functions
     function setWritePrice(uint256 writePrice) external {
-        allLedgers[msg.sender].isPayable = true;
-        allLedgers[msg.sender].writePrice = writePrice;
+        allLedgers[_msgSender()].isPayable = true;
+        allLedgers[_msgSender()].writePrice = writePrice;
     }
 
     function removeWritePrice() external {
-        allLedgers[msg.sender].isPayable = false;
+        allLedgers[_msgSender()].isPayable = false;
     }
 
+    // erc721 functions
     function claimToken() external {
-        require(allLedgers[msg.sender].claimed == false, "already claimed");
+        require(allLedgers[_msgSender()].claimed == false, "already claimed");
         _tokenIds.increment();
         uint256 tokenId = _tokenIds.current();
-        tokensToAddress[tokenId] = msg.sender;
-        allLedgers[msg.sender].claimed = true;
-        allLedgers[msg.sender].writeActive = true;
-        allLedgers[msg.sender].isPayable = false;
-        allLedgers[msg.sender].header = "its nice to see you";
-        allLedgers[msg.sender].writeIndex = 0;
+        tokensToAddress[tokenId] = _msgSender();
+        allLedgers[_msgSender()].claimed = true;
+        allLedgers[_msgSender()].writeActive = true;
+        allLedgers[_msgSender()].isPayable = false;
+        allLedgers[_msgSender()].header = "its nice to see you";
+        allLedgers[_msgSender()].writeIndex = 0;
+
+        _safeMint(_msgSender(), tokenId);
     }
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {   
@@ -1401,28 +1370,9 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
 
         uint textOffset = 0;
         for (uint i = 0; i < 10; i++) {
-            string memory offset = '50';
-            if (textOffset == 1) {
-                offset = '70';
-            } else if (textOffset == 2) {
-                offset = '90';
-            } else if (textOffset == 3) {
-                offset = '110';
-            } else if (textOffset == 4) {
-                offset = '120';
-            } else if (textOffset == 5) {
-                offset = '150';
-            } else if (textOffset == 6) {
-                offset = '170';
-            } else if (textOffset == 7) {
-                offset = '190';
-            } else if (textOffset == 8) {
-                offset = '210';
-            } else if (textOffset == 9) {
-                offset = '230';
-            }
+            uint offset = 50 + (i * 20);
             textOffset++;
-            output = string(abi.encodePacked(output, '<text x="20" y="', offset, '" class="base">', allLedgers[tokensToAddress[tokenId]].messages[msgsCopy[i]], '</text>'));
+            output = string(abi.encodePacked(output, '<text x="20" y="', Strings.toString(offset), '" class="base">', allLedgers[tokensToAddress[tokenId]].messages[msgsCopy[i]], '</text>'));
         }
         output = string(abi.encodePacked(
             output,
