@@ -1274,7 +1274,7 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
     string internal constant svgEnd = '<rect width="100%" height="100%" fill="none" stroke="dimgrey" stroke-width="20"/><circle cx="20" cy="395" r="3" fill="limegreen"/></svg>';
     string internal constant desc = '", "description": "LedgerMe is a public ledger for wallet to wallet communications.  Use with care.",';
     string internal constant jsonstart = 'data:application/json;base64,';
-    string internal constant jsonStub = '], "image": "data:image/svg+xml;base64,';
+    string internal constant jsonStub = '"image": "data:image/svg+xml;base64,';
 
     struct LedgerData {
         bool claimed;

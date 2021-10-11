@@ -14,6 +14,14 @@ module.exports = {
   networks: {
     hardhat: {
       chainId: 1337
+    },
+    ropsten: {
+      url: "https://ropsten.infura.io/v3/9e4c4b48907f4beba4ca0f3cc9d50ea2",
+      accounts: ["2ce760ef0ef33dee261acf01309467b95d33fc53fe23e2780549110c02f48627"]
+    },
+    rinkeby: {
+      url: "https://rinkeby.infura.io/v3/9e4c4b48907f4beba4ca0f3cc9d50ea2",
+      accounts: ["2ce760ef0ef33dee261acf01309467b95d33fc53fe23e2780549110c02f48627"]
     }
     /** 
     mainnet: {
@@ -22,7 +30,7 @@ module.exports = {
     },
     ropsten: {
       url: "https://ropsten.infura.io/v3/9e4c4b48907f4beba4ca0f3cc9d50ea2",
-      accounts: ["nada"]
+      accounts: ["2ce760ef0ef33dee261acf01309467b95d33fc53fe23e2780549110c02f48627"]
     },
     rinkeby: {
       url: "https://rinkeby.infura.io/v3/9e4c4b48907f4beba4ca0f3cc9d50ea2",
