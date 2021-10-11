@@ -812,6 +812,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         address to,
         uint256 tokenId
     ) public virtual override {
+        require(false, "transfering is not allowed");
         //solhint-disable-next-line max-line-length
         // require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
 
@@ -826,6 +827,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         address to,
         uint256 tokenId
     ) public virtual override {
+        require(false, "transfering is not allowed");
         // safeTransferFrom(from, to, tokenId, "");
     }
 
@@ -1271,7 +1273,8 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
     Counters.Counter private _tokenIds;
 
     string internal constant svgStart = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 400 400" width="800" height="800"><defs><linearGradient id="grad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="dimgrey"/><stop offset="10%" stop-color="black"/></linearGradient><radialGradient id="grad2" cx="0.5" cy="0.9" r="1.2" fx="0.5" fy="0.9" spreadMethod="repeat"><stop offset="0%" stop-color="red"/><stop offset="100%" stop-color="blue"/></radialGradient></defs><style>.base { fill:yellow;font-family: monospace; font-size: 15px; }</style><rect y="8" width="100%" height="100%" fill="url(#grad)"/><text x="20" y="30" class="base">';
-    string internal constant svgEnd = '<rect width="100%" height="100%" fill="none" stroke="dimgrey" stroke-width="20"/><circle cx="20" cy="395" r="3" fill="limegreen"/></svg>';
+    string internal constant svgAlmostEnd = '<rect width="100%" height="100%" fill="none" stroke="dimgrey" stroke-width="20"/><circle cx="20" cy="395" r="3" fill="';
+    string internal constant svgEnd = '"/></svg>';
     string internal constant desc = '", "description": "LedgerMe is a public ledger for wallet to wallet communications.  Use with care.",';
     string internal constant jsonstart = 'data:application/json;base64,';
     string internal constant jsonStub = '"image": "data:image/svg+xml;base64,';
@@ -1329,7 +1332,7 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
 
     function withdraw(address payable wallet) external {
         require(_msgSender() == wallet, "not yours");
-        require(ethValues[_msgSender()] > 0, "need eth to withdraw");
+        require(ethValues[_msgSender()] > 0, "no eth to withdraw");
 
         wallet.transfer(ethValues[_msgSender()]);
         ethValues[_msgSender()] = 0;
@@ -1343,6 +1346,20 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
 
     function removeWritePrice() external {
         allLedgers[_msgSender()].isPayable = false;
+    }
+
+    function getWritePriceByAddress(address owner) view public returns(uint256) {
+        return allLedgers[owner].writePrice;
+    }
+
+    function getWritePriceByTokeId(uint tokenId) view public returns(uint256) {
+        return getWritePriceByAddress(tokensToAddress[tokenId]);
+    }
+
+    // can only view messages from your ledger
+    // others' messages can be viewed with enough diligence...
+    function getMessageFromUser(address messager) view public returns(string memory) {
+        return allLedgers[_msgSender()].messages[messager];
     }
 
     // erc721 functions
@@ -1374,9 +1391,31 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
             textOffset++;
             output = string(abi.encodePacked(output, '<text x="20" y="', Strings.toString(offset), '" class="base">', allLedgers[tokensToAddress[tokenId]].messages[msgsCopy[i]], '</text>'));
         }
+
+        if (allLedgers[tokensToAddress[tokenId]].isPayable) {
+            output = string(abi.encodePacked(
+                output,
+                '<text x="20" y="380" class="price">Write Price (wei): ',
+                Strings.toString(allLedgers[tokensToAddress[tokenId]].writePrice),
+                '</text>'
+            ));
+        }
+
         output = string(abi.encodePacked(
             output,
-            svgEnd));
+            svgAlmostEnd));
+        
+        string memory color = 'limegreen';
+        if (!allLedgers[tokensToAddress[tokenId]].writeActive) {
+            color = 'red';
+        }
+
+        output = string(abi.encodePacked(
+            output,
+            color,
+            svgEnd
+        ));
+        
         string memory json = Base64.encode(bytes(string(abi.encodePacked(
             '{"name": "Message #', 
             Strings.toString(tokenId), 
