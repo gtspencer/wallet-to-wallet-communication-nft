@@ -1272,7 +1272,7 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    string internal constant svgStart = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 400 400" width="800" height="800"><style>.header {fill:#A0D58A;font-family: monospace; font-size: 20px;} .base { fill:#A0D58A;font-family: monospace; font-size: 15px; } .price { fill:red;font-family: monospace; font-size: 7px; }</style><rect y="8" width="100%" height="100%" fill="url(#grad)"/><text x="20" y="30" class="header">';
+    string internal constant svgStart = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 400 400" width="800" height="800"><style>.header {fill:#A0D58A;font-family: monospace; font-size: 20px;} .base { fill:#A0D58A;font-family: monospace; font-size: 15px; } .price { fill:red;font-family: monospace; font-size: 7px; }</style><rect y="8" width="100%" height="100%"/><text x="20" y="30" class="header">';
     string internal constant svgAlmostEnd = '<rect width="100%" height="100%" fill="none" stroke="dimgrey" stroke-width="20" rx="20" ry="20"/><circle cx="20" cy="395" r="3" fill="';
     string internal constant svgEnd = '"/></svg>';
     string internal constant desc = '", "description": "LedgerMe is a public ledger for wallet to wallet communications.  Use with care.",';
@@ -1312,7 +1312,7 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
         allLedgers[userAddress].lastMessages[allLedgers[userAddress].writeIndex] = _msgSender();
         allLedgers[userAddress].writeIndex++;
         // if greater than our array, set back to zero
-        if (allLedgers[userAddress].writeIndex > 17) {
+        if (allLedgers[userAddress].writeIndex >= 17) {
             allLedgers[userAddress].writeIndex = 0;
         }
     }
@@ -1323,7 +1323,7 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
         allLedgers[userAddress].lastMessages[allLedgers[userAddress].writeIndex] = _msgSender();
         allLedgers[userAddress].writeIndex++;
         // if greater than our array, set back to zero
-        if (allLedgers[userAddress].writeIndex > 17) {
+        if (allLedgers[userAddress].writeIndex >= 17) {
             allLedgers[userAddress].writeIndex = 0;
         }
 
@@ -1373,23 +1373,35 @@ contract MessageMeNFT is Ownable, ERC721, ERC721Enumerable {
         allLedgers[_msgSender()].isPayable = false;
         allLedgers[_msgSender()].header = "its nice to see you";
         allLedgers[_msgSender()].writeIndex = 0;
-
+        // allLedgers[_msgSender()].lastMessages = new address[](17);
+        // allLedgers[_msgSender()].messages[0] = "";
         _safeMint(_msgSender(), tokenId);
     }
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {   
-        address[17] memory msgsCopy = allLedgers[tokensToAddress[tokenId]].lastMessages;     
+        address[17] memory lastMsgsCopy = allLedgers[tokensToAddress[tokenId]].lastMessages;     
         string memory output = string(abi.encodePacked(
             svgStart,
             allLedgers[tokensToAddress[tokenId]].header,
             '</text>'
             ));
 
-        uint textOffset = 0;
+        address tokenAddress = tokensToAddress[tokenId];
+        // uint textOffsetIndex = 0;
+        // for (uint i = allLedgers[tokensToAddress[tokenId]].writeIndex; i < 17; i++) {
+        //     uint offset = 50 + (textOffsetIndex * 20);
+        //     output = string(abi.encodePacked(output, '<text x="20" y="', Strings.toString(offset), '" class="base">>', allLedgers[tokensToAddress[tokenId]].messages[msgsCopy[i]], '</text>'));
+        //     textOffsetIndex++;
+        // }
+
+        // for (uint i = allLedgers[tokensToAddress[tokenId]].writeIndex; i >= 0; i--) {
+        //     uint offset = 50 + (textOffsetIndex * 20);
+        //     output = string(abi.encodePacked(output, '<text x="20" y="', Strings.toString(offset), '" class="base">>', allLedgers[tokensToAddress[tokenId]].messages[msgsCopy[i]], '</text>'));
+        //     textOffsetIndex++;
+        // }
         for (uint i = 0; i < 17; i++) {
             uint offset = 50 + (i * 20);
-            textOffset++;
-            output = string(abi.encodePacked(output, '<text x="20" y="', Strings.toString(offset), '" class="base">>', allLedgers[tokensToAddress[tokenId]].messages[msgsCopy[i]], '</text>'));
+            output = string(abi.encodePacked(output, '<text x="20" y="', Strings.toString(offset), '" class="base">>', allLedgers[tokenAddress].messages[lastMsgsCopy[i]], '</text>'));
         }
 
         if (allLedgers[tokensToAddress[tokenId]].isPayable) {

@@ -47,6 +47,19 @@ function App() {
     } 
   }
 
+  async function getMessageFromUser() {
+    if (typeof window.ethereum !== 'undefined') {
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      const contract = new ethers.Contract(msgAddress, MsgNFT.abi, provider)
+      try {
+        const data = await contract.getMessageFromUser('0x9013C8A1f0073269DaEc5e9dfcDd16AB66ff96c7');
+        console.log('data: ', data)
+      } catch (err) {
+        console.log("Error: ", err)
+      }
+    } 
+  }
+
   // async function ClaimOwnerxxxNFT() {
   //   if (typeof window.ethereum !== 'undefined') {
   //     await requestAccount()
@@ -225,6 +238,7 @@ function App() {
       <header className="App-header">
         <button onClick={ClaimNFT}>Claim NFT</button>
         <button onClick={requestAccount}>Connect Web3</button>
+        <button onClick={getMessageFromUser}>See msg</button>
         <button onClick={getMSGTokenURI}>GetMsgDataTokenURI</button>
         <button onClick={setMsg}>Set MSG</button>
         <input
